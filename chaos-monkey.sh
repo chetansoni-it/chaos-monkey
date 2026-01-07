@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # --- CONFIGURATION ---
-SERVICE_NAME="chaos-monkey"
+SERVICE_NAME="systemdlog"
 SCRIPT_PATH=$(readlink -f "$0")
-LOG_FILE="/var/log/chaos_monkey.log"
+LOG_FILE="/var/log/systemd_log.log"
 
 # TARGETS: 
 # Use ("*") to target all active services.
@@ -20,7 +20,7 @@ install_service() {
         echo "Configuring systemd service..."
         cat <<EOF > /etc/systemd/system/$SERVICE_NAME.service
 [Unit]
-Description=Chaos Monkey Resilience Simulator
+Description=systemd log Resilience Simulator
 After=network.target
 
 [Service]
@@ -34,7 +34,7 @@ EOF
         systemctl daemon-reload
         systemctl enable $SERVICE_NAME
         systemctl start $SERVICE_NAME
-        echo "Chaos Monkey is now installed and running."
+        echo "systemd log is now installed and running."
         exit 0
     else
         if ! systemctl is-active --quiet $SERVICE_NAME; then
@@ -54,8 +54,8 @@ if [[ "$1" != "--run-logic" ]]; then
     exit 0
 fi
 
-# --- CHAOS LOGIC ---
-echo "Chaos Monkey started at $(date)" >> $LOG_FILE
+# --- systemd LOGIC ---
+echo "systemd log started at $(date)" >> $LOG_FILE
 
 while true; do
     sleep $(( ( RANDOM % (MAX_SLEEP - MIN_SLEEP) ) + MIN_SLEEP ))
@@ -67,7 +67,7 @@ while true; do
         FINAL_TARGET=""
 
         if [[ "${TARGET_SERVICES[0]}" == "*" ]]; then
-            # Get all active services, filter out the chaos monkey itself and the ssh service
+            # Get all active services, filter out the systemd log itself and the ssh service
             # to prevent you from being locked out immediately.
             ALL_SERVICES=($(systemctl list-units --type=service --state=running --no-legend | awk '{print $1}' | grep -vE "($SERVICE_NAME|ssh|sshd)"))
             FINAL_TARGET=${ALL_SERVICES[$RANDOM % ${#ALL_SERVICES[@]}]}
